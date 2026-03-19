@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../TeenTitansApp/TeenTitansApp.csproj" />
+  <Project Path="../TeenTitansRP.API/TeenTitansRP.API.csproj" />
+  <Project Path="../TeenTitansRP.Console/TeenTitansRP.Console.csproj" />
+  <Project Path="TeenTitansRP.csproj" />
+</Solution>

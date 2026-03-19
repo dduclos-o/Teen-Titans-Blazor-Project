@@ -1,0 +1,102 @@
+﻿@page "/powers"
+@using TeenTitansApp.Data
+@using TeenTitansRP;
+@inject PowerService PowerService
+
+<h3>Powers</h3>
+
+<h4>Add Power</h4>
+
+<EditForm Model="@newPower" OnValidSubmit="AddPower">
+    <DataAnnotationsValidator />
+
+    <div>
+        <InputText placeholder="Power Type" @bind-Value="newPower.PowerType" />
+        <ValidationMessage For="@(() => newPower.PowerType)" />
+    </div>
+
+    <button type="submit">Add Power</button>
+
+    @if (!string.IsNullOrEmpty(errorMsg))
+    {
+        <p style="color:red">@errorMsg</p>
+    }
+
+</EditForm>
+
+<hr />
+
+<h4>Delete Power</h4>
+
+<div>
+    <input placeholder="Power Type" @bind="name" />
+</div>
+
+<button @onclick="DeletePower">Delete Power</button>
+
+<hr />
+
+@if (powers == null)
+{
+    <p>Loading powers...</p>
+}
+else if (powers.Count == 0)
+{
+    <p>No powers found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Power Type</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var power in powers)
+            {
+                <tr>
+                    <td>@power.PowerType</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    List<Power> powers;
+    Power newPower = new Power();
+    string name = "";
+    string errorMsg = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        powers = await PowerService.GetPowers();
+    }
+
+    async Task AddPower()
+    {
+        errorMsg = "";
+        var response = await PowerService.AddPower(newPower);
+
+        if (response.IsSuccessStatusCode)
+        {
+            powers = await PowerService.GetPowers();
+            newPower = new Power();
+        }
+        else
+        {
+            errorMsg = await response.Content.ReadAsStringAsync();
+        }
+        
+    }
+
+    async Task DeletePower()
+    {
+        await PowerService.DeletePower(name);
+        powers = await PowerService.GetPowers();
+        name = "";
+    }
+}

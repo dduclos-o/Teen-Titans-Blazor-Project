@@ -1,0 +1,122 @@
+﻿@page "/teams"
+@using TeenTitansApp.Data
+@using TeenTitansRP;
+@inject TeamService TeamService
+
+<h3>Teams</h3>
+
+<h4>Add Team</h4>
+
+<EditForm Model="@newTeam" OnValidSubmit="AddTeam">
+    <DataAnnotationsValidator />
+
+    <div>
+        <InputText placeholder="Team Name" @bind-Value="newTeam.TeamName" />
+        <ValidationMessage For="@(() => newTeam.TeamName)" />
+    </div>
+
+    <div>
+        <InputText placeholder="Base Name" @bind-Value="newTeam.BaseName" />
+        <ValidationMessage For="@(() => newTeam.BaseName)" />
+    </div>
+
+    <div>
+        <InputText placeholder="Base Location" @bind-Value="newTeam.BaseLocation" />
+        <ValidationMessage For="@(() => newTeam.BaseLocation)" />
+    </div>
+
+    <div>
+        <label>Good</label>
+        <InputCheckbox @bind-Value="newTeam.isGood" />
+    </div>
+
+    <button type="submit">Add Team</button>
+
+    @if (!string.IsNullOrEmpty(errorMsg))
+    {
+        <p style="color:red">@errorMsg</p>
+    }
+
+</EditForm>
+
+<hr />
+
+<h4>Delete Team</h4>
+
+<div>
+    <input placeholder="Team Name" @bind="name" />
+</div>
+
+<button @onclick="DeleteTeam">Delete Team</button>
+
+<hr />
+
+@if (teams == null)
+{
+    <p>Loading teams...</p>
+}
+else if (teams.Count == 0)
+{
+    <p>No teams found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Team Name</th>
+                <th>Base Name</th>
+                <th>Base Location</th>
+                <th>isGood</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var team in teams)
+            {
+                <tr>
+                    <td>@team.TeamName</td>
+                    <td>@team.BaseName</td>
+                    <td>@team.BaseLocation</td>
+                    <td>@team.isGood</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    List<Team> teams;
+    Team newTeam = new Team();
+    string name = "";
+    string errorMsg = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        teams = await TeamService.GetTeams();
+    }
+
+    async Task AddTeam()
+    {
+        errorMsg = "";
+        var response = await TeamService.AddTeam(newTeam);
+
+        if (response.IsSuccessStatusCode)
+        {
+            teams = await TeamService.GetTeams();
+            newTeam = new Team();
+        }
+        else
+        {
+            errorMsg = await response.Content.ReadAsStringAsync();
+        }
+    }
+
+    async Task DeleteTeam()
+    {
+        await TeamService.DeleteTeam(name);
+        teams = await TeamService.GetTeams();
+        name = "";
+    }
+}

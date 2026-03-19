@@ -1,0 +1,122 @@
+﻿@page "/characters"
+@using TeenTitansApp.Data
+@using TeenTitansRP;
+@inject CharacterService CharacterService
+
+<h3>Characters</h3>
+
+<h4>Add Character</h4>
+
+<EditForm Model="@newCharacter" OnValidSubmit="AddCharacter">
+    <DataAnnotationsValidator />
+
+    <div>
+        <InputText placeholder="Alias" @bind-Value="newCharacter.Alias" />
+        <ValidationMessage For="@(() => newCharacter.Alias)" />
+    </div>
+
+    <div>
+        <InputText placeholder="Species" @bind-Value="newCharacter.Species" />
+        <ValidationMessage For="@(() => newCharacter.Species)" />
+    </div>
+
+    <div>
+        <InputText placeholder="Homeworld" @bind-Value="newCharacter.Homeworld" />
+        <ValidationMessage For="@(() => newCharacter.Homeworld)" />
+    </div>
+
+    <div>
+        <label>Hero</label>
+        <InputCheckbox @bind-Value="newCharacter.isHero" />
+    </div>
+
+    <button type="submit">Add Character</button>
+
+    @if (!string.IsNullOrEmpty(errorMsg))
+    {
+        <p style="color:red">@errorMsg</p>
+    }
+
+</EditForm>
+
+<hr />
+
+<h4>Delete Character</h4>
+
+<div>
+    <input placeholder="Alias" @bind="name" />
+</div>
+
+<button @onclick="DeleteCharacter">Delete Character</button>
+
+<hr />
+
+@if (characters == null)
+{
+    <p>Loading characters...</p>
+}
+else if (characters.Count == 0)
+{
+    <p>No characters found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Alias</th>
+                <th>Species</th>
+                <th>Homeworld</th>
+                <th>isHero</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var character in characters)
+            {
+                <tr>
+                    <td>@character.Alias</td>
+                    <td>@character.Species</td>
+                    <td>@character.Homeworld</td>
+                    <td>@character.isHero</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    List<Character> characters;
+    Character newCharacter = new Character();
+    string name = "";
+    string errorMsg = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        characters = await CharacterService.GetCharacters();
+    }
+
+    async Task AddCharacter()
+    {
+        errorMsg = "";
+        var response = await CharacterService.AddCharacter(newCharacter);
+
+        if (response.IsSuccessStatusCode)
+        {
+            characters = await CharacterService.GetCharacters();
+            newCharacter = new Character();
+        }
+        else
+        {
+            errorMsg = await response.Content.ReadAsStringAsync();
+        }
+    }
+
+    async Task DeleteCharacter()
+    {
+        await CharacterService.DeleteCharacter(name);
+        characters = await CharacterService.GetCharacters();
+        name = "";
+    }
+}
